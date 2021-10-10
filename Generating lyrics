@@ -1,0 +1,42 @@
+import pandas as pd
+import nltk
+import nltk.sentiment
+from googletrans import Translator
+from nltk.corpus import wordnet   #Import wordnet from the NLTK
+
+data=pd.read_csv(r"C:\Users\Anurag Kulkarni\Downloads\combined.csv")
+data.drop(["Unnamed: 0","Unnamed: 0.1","Year","Date"],axis=1,inplace=True)
+data["Album"].fillna(data["Title"]+" "+data["Artist"],axis=0,inplace=True)
+data["Lyric"].fillna("",axis=0,inplace=True)
+song=input("Enter song name: ")
+total=[]
+dict1={}
+stopwords=['i', 'me', 'my',"at", 'myself', 'we', 'our', 'ours', 'ourselves', 'you', "you're", "you've", "you'll", "you'd", 'your', 'yours', 'yourself', 'yourselves', 'he', 'him', 'his', 'himself', 'she', "she's", 'her', 'hers', 'herself', 'it', "it's", 'its', 'itself', 'they', 'them', 'their', 'theirs', 'themselves', 'what', 'which', 'who', 'whom', 'this', 'that', "that'll", 'these', 'those', 'am', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'having', 'do', 'does', 'did', 'doing', 'a', 'an', 'the', 'and', 'but', 'if', 'or', 'because', 'as', 'until', 'while', 'of', 'at', 'by', 'for', 'with', 'about', 'against', 'between', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'to', 'from', 'up', 'down', 'in', 'out', 'on', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 'can', 'will', 'just', 'don', "don't", 'should', "should've", 'now', 'd', 'll', 'm', 'o', 're', 've', 'y', 'ain', 'aren', "aren't", 'couldn', "couldn't", 'didn', "didn't", 'doesn', "doesn't", 'hadn', "hadn't", 'hasn', "hasn't", 'haven', "haven't", 'isn', "isn't", 'ma', 'mightn', "mightn't", 'mustn', "mustn't", 'needn', "needn't", 'shan', "shan't", 'shouldn', "shouldn't", 'wasn', "wasn't", 'weren', "weren't", 'won', "won't", 'wouldn', "wouldn't"]
+for i in range(len(data)):
+    if data["Title"][i]==song:
+        lyric=data["Lyric"][i]
+        z=nltk.word_tokenize(data["Lyric"][i])
+        for word in range(len(z)):
+            dict1[z[word]]=z[word]
+        m=nltk.FreqDist(z)
+        x=list(m.keys())
+
+for i in dict1:
+    translator = Translator()
+    translation = translator.translate(i)
+    synset = wordnet.synsets(translation.text)
+    if len(synset)==0:
+        dict1[i]=translation.text
+        continue
+    if translation.text.lower() in stopwords:
+        dict1[i]=translation.text
+        continue
+    if len(synset[0].lemmas())==1:
+        dict1[i]=translation.text
+    elif len(synset[0].lemmas())==2:
+        dict1[i]=synset[0].lemmas()[1].name()
+    else:
+        dict1[i]=synset[0].lemmas()[2].name()
+print("\n\nGenerated using synonyms:\n",end="")        
+for i,j in dict1.items():
+    print(j,end=" ")  
